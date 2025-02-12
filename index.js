@@ -1,11 +1,8 @@
 const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-const cheerio = require("cheerio");
+const puppeteer = require("puppeteer");
 
 const app = express();
 const PORT = 5000;
-app.use(cors());
 
 const monitoredDomains = [
   "https://avaliadordemusicas.com",
@@ -15,15 +12,24 @@ const monitoredDomains = [
 let domainStatus = {};
 
 async function checkGTM(domain) {
+  let browser;
   try {
-    const response = await axios.get(domain, { timeout: 5000 });
-    const $ = cheerio.load(response.data);
-    const scripts = $("script")
-      .map((_, el) => $(el).attr("src"))
-      .get();
-      console.log('teste', scripts);
-    const gtmLoaded = scripts.some(src => src && src.includes("googletagmanager.com/gtag/js"));
-   
+    browser = await puppeteer.launch({ headless: "new" });
+    const page = await browser.newPage();
+
+    await page.setRequestInterception(true);
+    let gtmLoaded = false;
+
+    page.on("request", (request) => {
+      const url = request.url();
+      if (url.includes("googletagmanager.com/gtm.js") || url.includes("googletagmanager.com/gtag/js")) {
+        gtmLoaded = true;
+      }
+    });
+    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
+
+    await page.goto(domain, { waitUntil: "networkidle2", timeout: 10000 });
+
     domainStatus[domain] = {
       status: gtmLoaded ? "OK" : "GTM NÃO ENCONTRADO",
       lastChecked: new Date().toISOString()
@@ -37,6 +43,8 @@ async function checkGTM(domain) {
       lastChecked: new Date().toISOString()
     };
     console.error(`[${domain}] - Erro ao acessar: ${error.message}`);
+  } finally {
+    if (browser) await browser.close();
   }
 }
 
