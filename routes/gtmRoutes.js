@@ -5,4 +5,5 @@ const router = express.Router();
 
 router.get("/status", getGTMStatus);
 
+
 module.exports = router;

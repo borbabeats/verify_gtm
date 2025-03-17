@@ -5,7 +5,7 @@ const { checkCheckoutLinks } = require("../checkout/checkoutChecker");
 
 async function checkDomain(domain) {
   let browser;
-
+console.log("test", domain)
   try {
     browser = await launchBrowser();
     const page = await browser.newPage();
@@ -14,7 +14,7 @@ async function checkDomain(domain) {
     const checkoutStatus = await checkCheckoutLinks(page, domain);
     
     return {
-      status: "OK",
+      status: true,
       lastChecked: new Date().toISOString(),
       ...gtmStatus,
       ...converteAIStatus,
@@ -22,7 +22,7 @@ async function checkDomain(domain) {
     };
   } catch (error) {
     return {
-      status: "ERRO",
+      status: false,
       error: error.message,
       lastChecked: new Date().toISOString(),
       gtmInstalled: false,
