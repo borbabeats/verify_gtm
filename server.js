@@ -3,7 +3,7 @@ const cors = require("cors");
 const gtmRoutes = require("./routes/gtmRoutes");
 
 const app = express();
-const PORT = 5000;
+const PORT = 5500;
 
 app.use(cors());
 

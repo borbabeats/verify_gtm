@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  app:
+    image: node:18
+    container_name: verify_domains
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports: 
+      - "5000:5000"
+    command: "npm start"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: dbdomains
+    networks:
+      - minha-rede
+
+  db:
+    image: mysql:8.0
+    container_name: verify_domains_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dbdomains
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - minha-rede
+
+volumes:
+  db-data:
+
+networks:
+  minha-rede:
